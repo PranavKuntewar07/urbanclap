@@ -1,23 +1,20 @@
-// firebase-config.jsx
+// firebase-config.js
 import { initializeApp } from 'firebase/app';
+import { getFirestore } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
 import { getAuth } from 'firebase/auth';
-import { getFirestore, collection, addDoc } from 'firebase/firestore';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
-// Your Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyCGqHnL-bTKHWxyRnnKe_zZxrKV6gVyIU4",
-  authDomain: "choice-up-6569d.firebaseapp.com",
-  projectId: "choice-up-6569d",
-  storageBucket: "choice-up-6569d.appspot.com",
-  messagingSenderId: "451760749637",
-  appId: "1:451760749637:web:09fd538096327bae0df72c"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
-
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const storage = getStorage(app);
+const auth = getAuth(app);  // Initialize Auth
+const db = getFirestore(app);  // Initialize Firestore
+const storage = getStorage(app); // Initialize Storage
 
-export { auth, db, collection, addDoc, storage, ref, uploadBytes, getDownloadURL };
+export { auth, db, storage };

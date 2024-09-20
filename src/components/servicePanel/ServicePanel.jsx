@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { TextField, Slider, Button, Typography, Box, Avatar, Input, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
-import { db, storage, collection, addDoc, ref, uploadBytes, getDownloadURL } from '../../firebase/firebase-config'; // Ensure this import matches your file structure
+import { db, storage } from '../../firebase/firebase-config'; // Ensure this import matches your file structure
+import { addDoc, collection } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { ToastContainer, toast } from 'react-toastify'; // Import toast and ToastContainer
 import 'react-toastify/dist/ReactToastify.css'; // Import the CSS for toast notifications
+
 
 const ServicePanel = () => {
   const [serviceCategory, setServiceCategory] = useState([]);
@@ -71,9 +74,10 @@ const ServicePanel = () => {
         const snapshot = await uploadBytes(photoRef, profilePhoto);
         photoURL = await getDownloadURL(photoRef);
       }
+      
   
       // Save the data to Firestore
-      await addDoc(collection(db, 'serviceRequests'), {
+      await setDoc(collection(db, 'serviceRequests'), {
         serviceCategory,
         serviceName,
         priceRange,

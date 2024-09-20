@@ -6,7 +6,7 @@ import { auth, db } from '../../firebase/firebase-config';
 import { TextField, Button, Typography, Box } from '@mui/material';
 import ServicePanel from '../servicePanel/ServicePanel';
 
-export default function ContactForm() {
+export default function ContactForm({ vendorEmail }) {
     const [phoneNumber, setPhoneNumber] = useState('');
     const [otp, setOtp] = useState('');
     const [confirmationResult, setConfirmationResult] = useState(null);
@@ -130,7 +130,7 @@ export default function ContactForm() {
 
     if (isPanelVisible) {
         console.log('Rendering ServicePanel.');
-        return <ServicePanel />; // Render ServicePanel if isPanelVisible is true
+        return <ServicePanel vendorEmail={vendorEmail} />; // Render ServicePanel if isPanelVisible is true
     }
 
     return (

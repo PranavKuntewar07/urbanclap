@@ -7,6 +7,7 @@ export default function Modal({
     yourName,
     shopName,
     shopLocation,
+    vendorEmail,
     setYourName,
     setShopName,
     setShopLocation,
@@ -118,7 +119,7 @@ export default function Modal({
             {isContactFormOpen && (
                 <div className="fixed inset-0 flex items-center justify-center z-20 bg-black bg-opacity-50">
                     <div className="bg-gray-50 p-6 rounded-lg shadow-lg relative">
-                        <ContactForm />
+                        <ContactForm vendorEmail={vendorEmail} />
                         <button 
                             onClick={handleCloseContactForm} 
                             className="absolute top-4 right-4 text-white bg-red-600 p-2 rounded"
