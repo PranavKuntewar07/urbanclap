@@ -77,7 +77,7 @@ const ServicePanel = () => {
       
   
       // Save the data to Firestore
-      await setDoc(collection(db, 'serviceRequests'), {
+      await setDoc(collection(db, 'emailId'), {
         serviceCategory,
         serviceName,
         priceRange,
