@@ -7,7 +7,7 @@ import { ToastContainer, toast } from 'react-toastify'; // Import toast and Toas
 import 'react-toastify/dist/ReactToastify.css'; // Import the CSS for toast notifications
 
 
-const ServicePanel = () => {
+const ServicePanel = ({ vendorEmail }) => {
   const [serviceCategory, setServiceCategory] = useState([]);
   const [serviceName, setServiceName] = useState([]);
   const [priceRange, setPriceRange] = useState([0, 1000000]);
@@ -24,7 +24,7 @@ const ServicePanel = () => {
     Waterproofing: ["Waterproofing Basic", "Advanced Waterproofing"],
     Wallpanels: ["Standard Wallpanels", "Custom Wallpanels"],
     "AC Appliance & Repair": ["AC Installation", "AC Repair", "AC Service"],
-    "Electronic items Repair": ["Refrigerator repair", "Air Cooler Repair", "Water Purifier Repair ","Geyser Repair", "Inverter Repair", "Chimney Repair", "Microwave Repair", "Laptop Repair", "Gas Stove Repair", "Telivison Repair"],
+    "Electronic items Repair": ["Refrigerator repair", "Air Cooler Repair", "Water Purifier Repair ", "Geyser Repair", "Inverter Repair", "Chimney Repair", "Microwave Repair", "Laptop Repair", "Gas Stove Repair", "Telivison Repair"],
     "Cleaning, Pest Control": ["Home Cleaning", "Pest Control", "Water Tank Cleaning", "Sofa and Carpet deep Cleaning", "Full Home Cleaning", "Bed Bugs Control", "Bathroom and Kitchen Cleaning", "Disinfection Service"],
     "Women's Salon, Spa & Laser Clinic": ["Facials", "Haircut & Styling", "Salon Prime", "Hydraderma Facials & Treatments", "Salon Classic", "Nail Studio", "Laser Hair Reduction", "Spa Ayurveda", "Spa Luxe", "Hair Studio For Women", "Salon Luxe", "Spa for Women"],
     "Men's Salon & Massage": ["Haircut", "Massage Therapy", "Men Therapy", "Massage For Men", "Salon Royale For Kids", "Massage For Men Ayurveda"],
@@ -67,24 +67,24 @@ const ServicePanel = () => {
   const handleSave = async () => {
     try {
       let photoURL = '';
-  
+
       // Upload the profile photo if available
       if (profilePhoto) {
         const photoRef = ref(storage, `profilePhotos/${profilePhoto.name}`);
-        const snapshot = await uploadBytes(photoRef, profilePhoto);
+        await uploadBytes(photoRef, profilePhoto);
         photoURL = await getDownloadURL(photoRef);
       }
-      
-  
+
+
       // Save the data to Firestore
-      await setDoc(collection(db, 'emailId'), {
+      await setDoc(doc(db, 'services', vendorEmail), {
         serviceCategory,
         serviceName,
         priceRange,
         serviceZone,
         photoURL,
       });
-  
+
       // Clear form after successful submission
       setServiceCategory('');
       setServiceName('');
@@ -92,15 +92,11 @@ const ServicePanel = () => {
       setServiceZone('');
       setProfilePhoto(null);
       toast.success('Data saved successfully!'); // Show success toast
+
+
     } catch (error) {
       console.error('Error saving data:', error);
-      if (error.message.includes('permission-denied')) {
-        toast.error('You do not have permission to save data.');
-      } else if (error.message.includes('network')) {
-        toast.error('Network error. Please try again.');
-      } else {
-        toast.error('An unexpected error occurred. Please try again.');
-      }
+      toast.error('Failed to save service data');
     }
   };
 
@@ -113,7 +109,7 @@ const ServicePanel = () => {
         <InputLabel id="service-category-label">Service Category</InputLabel>
         <Select
           labelId="service-category-label"
-          
+
           value={serviceCategory}
           onChange={(e) => setServiceCategory(e.target.value)}
           label="Service Category"
@@ -130,7 +126,7 @@ const ServicePanel = () => {
         <InputLabel id="service-name-label">Service Name</InputLabel>
         <Select
           labelId="service-name-label"
-          
+
           value={serviceName}
           onChange={(e) => setServiceName(e.target.value)}
           label="Service Name"
@@ -148,7 +144,7 @@ const ServicePanel = () => {
         <InputLabel id="service-zone-label">Service Zone</InputLabel>
         <Select
           labelId="service-zone-label"
-          
+
           value={serviceZone}
           onChange={(e) => setServiceZone(e.target.value)}
           label="Service Zone"

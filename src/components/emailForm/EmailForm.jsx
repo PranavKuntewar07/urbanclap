@@ -1,32 +1,38 @@
 import React, { useState } from 'react';
-import { createEmail } from '../../services/api';
+import { db } from '../../firebase/firebase-config';
+import { doc, setDoc } from 'firebase/firestore';
+import { toast } from 'react-toastify';
+import { TextField, Button } from '@mui/material';
 
-const EmailForm = () => {
-  const [emailAddress, setEmailAddress] = useState('');
+const EmailForm = ({ onSubmit }) => {
+  
+    const [emailAddress, setEmailAddress] = useState('');
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await createEmail({ emailAddress });
-      setEmailAddress('');
-      // You might want to trigger a refresh of the email list here
-    } catch (error) {
-      console.error('Error creating email:', error);
-    }
-  };
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            await setDoc(doc(db, 'emails', emailAddress), { createdAt: new Date() });
+            toast.success('Email added successfully');
+            setEmailAddress('');
+            onSubmit(emailAddress); // Notify parent with email
+        } catch (error) {
+            console.error('Error creating email:', error);
+            toast.error('Failed to add email');
+        }
+    };
 
-  return (
-    <form onSubmit={handleSubmit}>
-      <input
-        type="email"
-        value={emailAddress}
-        onChange={(e) => setEmailAddress(e.target.value)}
-        placeholder="Enter email address"
-        required
-      />
-      <button type="submit">Add Email</button>
-    </form>
-  );
+    return (
+        <form onSubmit={handleSubmit}>
+            <TextField
+                type="email"
+                value={emailAddress}
+                onChange={(e) => setEmailAddress(e.target.value)}
+                placeholder="Enter email address"
+                required
+            />
+            <Button type="submit">Add Email</Button>
+        </form>
+    );
 };
 
 export default EmailForm;
