@@ -4,8 +4,7 @@ import { doc, setDoc } from 'firebase/firestore';
 import { toast } from 'react-toastify';
 import { TextField, Button } from '@mui/material';
 
-const EmailForm = ({ onSubmit }) => {
-  
+const EmailForm = ({ onSubmit, onVerificationStart }) => {
     const [emailAddress, setEmailAddress] = useState('');
 
     const handleSubmit = async (e) => {
@@ -15,6 +14,9 @@ const EmailForm = ({ onSubmit }) => {
             toast.success('Email added successfully');
             setEmailAddress('');
             onSubmit(emailAddress); // Notify parent with email
+            if (onVerificationStart) {
+                onVerificationStart(); // Trigger OTP verification process
+            }
         } catch (error) {
             console.error('Error creating email:', error);
             toast.error('Failed to add email');

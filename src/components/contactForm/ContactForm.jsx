@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { signInWithPhoneNumber, RecaptchaVerifier } from 'firebase/auth';
 import { auth } from '../../firebase/firebase-config';
-import { TextField, Button, Typography, Box } from '@mui/material';
+import { TextField, Button, Typography, Box, CircularProgress } from '@mui/material';
 
-const ContactForm = ({ setShowEmailForm }) => {
+const ContactForm = ({ onOtpSuccess }) => {
     const [phoneNumber, setPhoneNumber] = useState('');
     const [otp, setOtp] = useState('');
     const [confirmationResult, setConfirmationResult] = useState(null);
@@ -59,7 +59,11 @@ const ContactForm = ({ setShowEmailForm }) => {
             if (!confirmationResult) throw new Error('Please send OTP first');
             await confirmationResult.confirm(otp);
             setSuccess('Phone number verified successfully!');
-            setShowEmailForm(); // Notify parent to move to EmailForm
+            if (onOtpSuccess) {
+                setTimeout(() => {
+                    onOtpSuccess(); // Notify parent to move to EmailForm
+                }, 1000); // Delay to show success message
+            }
         } catch (error) {
             setError(`Error verifying OTP: ${error.message}`);
         } finally {
@@ -71,7 +75,7 @@ const ContactForm = ({ setShowEmailForm }) => {
         <Box p={3} border={1} borderRadius={2} borderColor="grey.400" width={300}>
             <Typography variant="h6">Contact Details</Typography>
             {error && <Typography color="error">{error}</Typography>}
-            {success && <Typography color="success">{success}</Typography>}
+            {success && <Typography color="success.main">{success}</Typography>}
             <form onSubmit={isOtpSent ? handleVerifyOtp : handleSendOtp}>
                 <TextField
                     label="Phone Number"
@@ -104,6 +108,7 @@ const ContactForm = ({ setShowEmailForm }) => {
                     color="primary"
                     fullWidth
                     disabled={loading}
+                    startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
                 >
                     {loading ? 'Processing...' : (isOtpSent ? 'Verify OTP' : 'Send OTP')}
                 </Button>

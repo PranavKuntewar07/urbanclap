@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useModal } from './ModalProvider'; // Import the context
 import { useNavigate } from 'react-router-dom'; // Import Link for navigation
 import { auth } from '../../firebase/firebase-config'; // Import auth from firebase-config
+import { signOut } from 'firebase/auth';
 
 function Navbar() {
     const { openModal } = useModal(); // Use context to get openModal function
@@ -27,7 +28,14 @@ function Navbar() {
         };
     }, []);
 
+    useEffect(() => {
 
+        const unsubscribe = auth.onAuthStateChanged((user) => {
+            setIsLoggedIn(!!user);
+        });
+
+        return () => unsubscribe();
+    }, []);
 
     const handleChange = (event) => {
         setSelectedOption(event.target.value);
