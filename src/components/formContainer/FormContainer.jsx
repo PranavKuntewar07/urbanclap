@@ -18,6 +18,10 @@ const FormContainer = () => {
         setStep(2); // Move to ServicePanel after email submission
     };
 
+    useEffect(() => {
+        console.log('Current step:', step);
+    }, [step]);
+
     return (
         <div>
             {step === 0 && <ContactForm onOtpSuccess={handleOtpSuccess} />}

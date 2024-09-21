@@ -60,9 +60,7 @@ const ContactForm = ({ onOtpSuccess }) => {
             await confirmationResult.confirm(otp);
             setSuccess('Phone number verified successfully!');
             if (onOtpSuccess) {
-                setTimeout(() => {
-                    onOtpSuccess(); // Notify parent to move to EmailForm
-                }, 1000); // Delay to show success message
+                onOtpSuccess(); // Call immediately without setTimeout
             }
         } catch (error) {
             setError(`Error verifying OTP: ${error.message}`);
