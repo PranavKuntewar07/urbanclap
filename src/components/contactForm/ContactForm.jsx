@@ -60,7 +60,8 @@ const ContactForm = ({ onOtpSuccess }) => {
             await confirmationResult.confirm(otp);
             setSuccess('Phone number verified successfully!');
             if (onOtpSuccess) {
-                onOtpSuccess(); // Call immediately without setTimeout
+                console.log('Calling onOtpSuccess from ContactForm');
+                onOtpSuccess();
             }
         } catch (error) {
             setError(`Error verifying OTP: ${error.message}`);

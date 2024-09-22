@@ -11,11 +11,13 @@ const FormContainer = () => {
 
     const handleOtpSuccess = () => {
         setStep(1); // Move to EmailForm after OTP verification
+        toast.success('OTP verified successfully!');
     };
 
     const handleEmailSubmission = (email) => {
         setVendorEmail(email);
         setStep(2); // Move to ServicePanel after email submission
+        toast.success('Email submitted successfully!');
     };
 
     useEffect(() => {
