@@ -1,35 +1,57 @@
 import React, { useState } from 'react';
 import ContactForm from '../contactForm/ContactForm';
-import EmailForm from "../emailForm/EmailForm";
-import ServicePanel from "../servicePanel/ServicePanel";
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import EmailForm from '../emailForm/EmailForm';
+import ServicePanel from '../servicePanel/ServicePanel';
 
 const FormContainer = () => {
-    const [step, setStep] = useState(0); // 0: ContactForm, 1: EmailForm, 2: ServicePanel
+    const [showContactForm, setShowContactForm] = useState(true);  // Initially show the Contact Form
+    const [showEmailForm, setShowEmailForm] = useState(false);     // Email Form is hidden initially
+    const [showServicePanel, setShowServicePanel] = useState(false);
     const [vendorEmail, setVendorEmail] = useState('');
 
+    // Function to handle OTP success and switch to Email Form
     const handleOtpSuccess = () => {
-        setStep(1); // Move to EmailForm after OTP verification
-        toast.success('OTP verified successfully!');
+        setShowContactForm(false);  // Hide Contact Form
+        setShowEmailForm(true);     // Show Email Form
     };
 
-    const handleEmailSubmission = (email) => {
-        setVendorEmail(email);
-        setStep(2); // Move to ServicePanel after email submission
-        toast.success('Email submitted successfully!');
+    // Function to close the Contact Form (when OTP is verified)
+    const handleCloseContactForm = () => {
+        setShowContactForm(false);  // Close the Contact Form
+        setShowEmailForm(true);
     };
 
-    useEffect(() => {
-        console.log('Current step:', step);
-    }, [step]);
+    // Function to handle email submission (you can customize this)
+    const handleEmailSubmit = (emailData) => {
+        console.log('Email submitted:', emailData);
+        // Here you can handle the email data, like saving it to Firebase
+        setVendorEmail(emailData.email);
+        setShowEmailForm(false);
+        setShowServicePanel(true);
+    };
 
     return (
         <div>
-            {step === 0 && <ContactForm onOtpSuccess={handleOtpSuccess} />}
-            {step === 1 && <EmailForm onSubmit={handleEmailSubmission} />}
-            {step === 2 && <ServicePanel vendorEmail={vendorEmail} />}
-            <ToastContainer />
+            <Typography variant="h6" align="center" gutterBottom>
+                {showContactForm ? 'Contact Form' : showEmailForm ? 'Email Form' : 'Service Panel'}
+            </Typography>
+            {showContactForm && (
+                <ContactForm
+                    onOtpSuccess={handleOtpSuccess}
+                    onCloseContactForm={handleCloseContactForm}
+                />
+            )}
+            {showEmailForm && (
+                <EmailForm
+                    onSubmitEmail={handleEmailSubmit}
+                />
+            )}
+            {showServicePanel && (
+                <ServicePanel
+                    vendorEmail={vendorEmail}
+                />
+
+            )}
         </div>
     );
 };

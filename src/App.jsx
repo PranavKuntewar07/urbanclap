@@ -7,7 +7,7 @@ import SignUp from './pages/signup/Signup';
 import Dashboard from './pages/dashboard/Dashboard';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import FormContainer from './components/formContainer/FormContainer';
+
 
 function App() {
     return (
@@ -18,12 +18,14 @@ function App() {
                     <Route path="/login" element={<Login />} />
                     <Route path="/signup" element={<SignUp />} />
                     <Route path="/dashboard" element={<Dashboard />} />
-                    <Route  path="/formContainer" element={<FormContainer />} />
+                    
                 </Routes>
                 <ToastContainer />
             </ModalProvider>
         </Router>
     );
 }
+
+
 
 export default App;
