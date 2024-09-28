@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { TextField, Slider, Button, Typography, Box, Avatar, Input, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import { db, storage } from '../../firebase/firebase-config'; // Ensure this import matches your file structure
-import { addDoc, collection } from 'firebase/firestore';
+import { addDoc, collection, doc, setDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { ToastContainer, toast } from 'react-toastify'; // Import toast and ToastContainer
 import 'react-toastify/dist/ReactToastify.css'; // Import the CSS for toast notifications
@@ -75,15 +75,38 @@ const ServicePanel = ({ vendorEmail }) => {
         photoURL = await getDownloadURL(photoRef);
       }
 
+      // Reference to the vendor's document in the 'emails' collection
+      const vendorDocRef = doc(db, 'emails', vendorEmail);
 
-      // Save the data to Firestore
-      await setDoc(doc(db, 'services', vendorEmail), {
+      // Ensure the vendor document exists (or create it if it doesn't)
+      await setDoc(vendorDocRef, { email: vendorEmail }, { merge: true });
+
+      // Reference to the 'services' sub-collection of the vendor's document
+      const servicesCollectionRef = collection(vendorDocRef, 'services');
+
+      // Reference to the email document's services sub-collection
+      const serviceRef = collection(db, 'emails', vendorEmail, 'services');
+      await addDoc(serviceRef, {
         serviceCategory,
         serviceName,
         priceRange,
         serviceZone,
         photoURL,
+        createdAt: new Date() // Timestamp for the service document
       });
+
+      // Add a new document to the 'services' sub-collection
+      await addDoc(servicesCollectionRef, {
+        serviceCategory,
+        serviceName,
+        priceRange,
+        serviceZone,
+        photoURL,
+        createdAt: new Date()
+      });
+
+      // Show success toast notification
+      toast.success('Service saved successfully!');
 
       // Clear form after successful submission
       setServiceCategory('');
@@ -92,7 +115,6 @@ const ServicePanel = ({ vendorEmail }) => {
       setServiceZone('');
       setProfilePhoto(null);
       toast.success('Data saved successfully!'); // Show success toast
-
 
     } catch (error) {
       console.error('Error saving data:', error);
