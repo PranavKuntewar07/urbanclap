@@ -7,13 +7,13 @@ import { ToastContainer, toast } from 'react-toastify'; // Import toast and Toas
 import 'react-toastify/dist/ReactToastify.css'; // Import the CSS for toast notifications
 
 
-const ServicePanel = ({ vendorEmail }) => {
-  const [serviceCategory, setServiceCategory] = useState([]);
-  const [serviceName, setServiceName] = useState([]);
+const ServicePanel = () => {
+  const [serviceCategory, setServiceCategory] = useState('');
+  const [serviceName, setServiceName] = useState('');
   const [priceRange, setPriceRange] = useState([0, 1000000]);
-  const [serviceZone, setServiceZone] = useState([]);
+  const [serviceZone, setServiceZone] = useState('');
   const [profilePhoto, setProfilePhoto] = useState(null);
-  const [photoURL, setPhotoURL] = useState('');
+  const [vendorEmail, setVendorEmail] = useState('');
 
   // Define the service options
   const serviceOptions = {
@@ -39,6 +39,11 @@ const ServicePanel = ({ vendorEmail }) => {
     // Clear the selected service name if the selected category changes
     setServiceName('');
   }, [serviceCategory]);
+
+  const handleEmailSubmit = ({ email }) => {
+    setVendorEmail(email);
+    toast.success('Email submitted successfully!');
+  };
 
   const handlePhotoChange = (event) => {
     if (event.target.files && event.target.files[0]) {
@@ -66,46 +71,34 @@ const ServicePanel = ({ vendorEmail }) => {
 
   const handleSave = async () => {
     try {
+      if (!vendorEmail) {
+        throw new Error('Please submit your email first');
+      }
+
       let photoURL = '';
 
-      // Upload the profile photo if available
       if (profilePhoto) {
-        const photoRef = ref(storage, `profilePhotos/${profilePhoto.name}`);
+        const photoRef = ref(storage, `profilePhotos/${Date.now()}_${profilePhoto.name}`);
         await uploadBytes(photoRef, profilePhoto);
         photoURL = await getDownloadURL(photoRef);
       }
 
-      // Reference to the vendor's document in the 'emails' collection
       const vendorDocRef = doc(db, 'emails', vendorEmail);
-
-      // Ensure the vendor document exists (or create it if it doesn't)
       await setDoc(vendorDocRef, { email: vendorEmail }, { merge: true });
 
-      // Reference to the 'services' sub-collection of the vendor's document
       const servicesCollectionRef = collection(vendorDocRef, 'services');
-
-      // Reference to the email document's services sub-collection
-      const serviceRef = collection(db, 'emails', vendorEmail, 'services');
-      await addDoc(serviceRef, {
-        serviceCategory,
-        serviceName,
-        priceRange,
-        serviceZone,
-        photoURL,
-        createdAt: new Date() // Timestamp for the service document
-      });
-
-      // Add a new document to the 'services' sub-collection
-      await addDoc(servicesCollectionRef, {
+      
+      const newServiceData = {
         serviceCategory,
         serviceName,
         priceRange,
         serviceZone,
         photoURL,
         createdAt: new Date()
-      });
+      };
 
-      // Show success toast notification
+      await addDoc(servicesCollectionRef, newServiceData);
+
       toast.success('Service saved successfully!');
 
       // Clear form after successful submission
@@ -114,11 +107,10 @@ const ServicePanel = ({ vendorEmail }) => {
       setPriceRange([0, 1000000]);
       setServiceZone('');
       setProfilePhoto(null);
-      toast.success('Data saved successfully!'); // Show success toast
 
     } catch (error) {
       console.error('Error saving data:', error);
-      toast.error('Failed to save service data');
+      toast.error(`Failed to save service data: ${error.message}`);
     }
   };
 

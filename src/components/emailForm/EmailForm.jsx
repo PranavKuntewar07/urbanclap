@@ -30,10 +30,12 @@ const EmailForm = ({ onSubmitEmail }) => {
                 onSubmitEmail({ email });
             }
 
+            toast.success('Email submitted successfully!');
             // Clear the input field
             setEmail('');
         } catch (e) {
             console.error("Error adding document: ", e);
+            toast.error(`Failed to submit email: ${error.message}`);
         }
     };
 
