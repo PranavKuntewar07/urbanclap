@@ -30,21 +30,24 @@ const ServicePanel = () => {
     "Men's Salon & Massage": ["Haircut", "Massage Therapy", "Men Therapy", "Massage For Men", "Salon Royale For Kids", "Massage For Men Ayurveda"],
   };
 
-  // Get service names based on the selected category
-  const getServiceNames = (category) => {
-    return serviceOptions[category] || [];
-  };
+  // Zone options
+  const zoneOptions = [
+    "Wakad", "Sangavi", "Hinjewadi", "Chaturshringi", "Pimpri", "Chinchwad",
+    "Nigadi", "Bhosari", "MIDC Bhosari", "Yerawada", "Vimantal",
+    "Vishrantwadi", "Khadaki", "Dighi", "Mundhawa", "Hadapsar", "Kondhwa",
+    "Wanawadi", "Faraskhana", "Khadak", "Vishrambaug", "Shivajinagar",
+    "Deccan", "Kothrud", "Warje Malwadi", "Bharati Vidyapeeth",
+    "Sahakar Nagar", "Market Yard", "Sinhagad", "Bibvewadi", "Dattawadi",
+    "Swargate", "Bund Garden", "Koregaon Park", "Lashkar",
+    "Samarth (Somwar Peth)"
+  ];
 
-  useEffect(() => {
-    // Clear the selected service name if the selected category changes
+   // Reset service name when category changes
+   useEffect(() => {
     setServiceName('');
   }, [serviceCategory]);
 
-  const handleEmailSubmit = ({ email }) => {
-    setVendorEmail(email);
-    toast.success('Email submitted successfully!');
-  };
-
+  // Handlers
   const handlePhotoChange = (event) => {
     if (event.target.files && event.target.files[0]) {
       setProfilePhoto(event.target.files[0]);
@@ -71,37 +74,40 @@ const ServicePanel = () => {
 
   const handleSave = async () => {
     try {
+      // Validation
       if (!vendorEmail) {
-        throw new Error('Please submit your email first');
+        throw new Error('Please provide vendor email');
+      }
+      if (!serviceCategory || !serviceName || !serviceZone) {
+        throw new Error('Please fill all required fields');
       }
 
+      // Upload photo to Firebase Storage
       let photoURL = '';
-
       if (profilePhoto) {
         const photoRef = ref(storage, `profilePhotos/${Date.now()}_${profilePhoto.name}`);
         await uploadBytes(photoRef, profilePhoto);
         photoURL = await getDownloadURL(photoRef);
       }
 
+      // Save to Firestore
       const vendorDocRef = doc(db, 'emails', vendorEmail);
       await setDoc(vendorDocRef, { email: vendorEmail }, { merge: true });
 
       const servicesCollectionRef = collection(vendorDocRef, 'services');
-      
       const newServiceData = {
         serviceCategory,
         serviceName,
         priceRange,
         serviceZone,
         photoURL,
-        createdAt: new Date()
+        createdAt: new Date(),
       };
-
       await addDoc(servicesCollectionRef, newServiceData);
 
       toast.success('Service saved successfully!');
-
-      // Clear form after successful submission
+      
+      // Reset form
       setServiceCategory('');
       setServiceName('');
       setPriceRange([0, 1000000]);
@@ -116,90 +122,51 @@ const ServicePanel = () => {
 
   return (
     <Box p={3} border={1} borderRadius={2} borderColor="grey.400" width={300}>
-      <Typography variant="h6">Service Panel</Typography>
+      <Typography variant="h6" gutterBottom>Service Panel</Typography>
 
-      {/* Service Category Dropdown */}
-      <FormControl fullWidth margin="normal">
-        <InputLabel id="service-category-label">Service Category</InputLabel>
+      <TextField
+        fullWidth
+        margin="normal"
+        label="Vendor Email"
+        value={vendorEmail}
+        onChange={(e) => setVendorEmail(e.target.value)}
+        required
+      />
+
+      <FormControl fullWidth margin="normal" required>
+        <InputLabel>Service Category</InputLabel>
         <Select
-          labelId="service-category-label"
-
           value={serviceCategory}
           onChange={(e) => setServiceCategory(e.target.value)}
-          label="Service Category"
         >
-          <MenuItem value="">Select Category</MenuItem>
           {Object.keys(serviceOptions).map((category) => (
             <MenuItem key={category} value={category}>{category}</MenuItem>
           ))}
         </Select>
       </FormControl>
 
-      {/* Service Name Dropdown */}
-      <FormControl fullWidth margin="normal">
-        <InputLabel id="service-name-label">Service Name</InputLabel>
+      <FormControl fullWidth margin="normal" required>
+        <InputLabel>Service Name</InputLabel>
         <Select
-          labelId="service-name-label"
-
           value={serviceName}
           onChange={(e) => setServiceName(e.target.value)}
-          label="Service Name"
           disabled={!serviceCategory}
         >
-          <MenuItem value="">Select Service</MenuItem>
-          {getServiceNames(serviceCategory).map((service) => (
+          {serviceOptions[serviceCategory]?.map((service) => (
             <MenuItem key={service} value={service}>{service}</MenuItem>
           ))}
         </Select>
       </FormControl>
 
-      {/* Service Zone Dropdown */}
-      <FormControl fullWidth margin="normal">
-        <InputLabel id="service-zone-label">Service Zone</InputLabel>
+      <FormControl fullWidth margin="normal" required>
+        <InputLabel>Service Zone</InputLabel>
         <Select
-          labelId="service-zone-label"
-
           value={serviceZone}
           onChange={(e) => setServiceZone(e.target.value)}
-          label="Service Zone"
         >
-          <MenuItem value="">Select Zone</MenuItem>
-          <MenuItem value="Wakad">Wakad</MenuItem>
-          <MenuItem value="Sangavi">Sangavi</MenuItem>
-          <MenuItem value="Hinjewadi">Hinjewadi</MenuItem>
-          <MenuItem value="Chaturshringi">Chaturshringi</MenuItem>
-          <MenuItem value="Pimpri">Pimpri</MenuItem>
-          <MenuItem value="Chinchwad">Chinchwad</MenuItem>
-          <MenuItem value="Nigadi">Nigadi</MenuItem>
-          <MenuItem value="Bhosari">Bhosari</MenuItem>
-          <MenuItem value="MIDC Bhosari">MIDC Bhosari</MenuItem>
-          <MenuItem value="Yerawada">Yerawada</MenuItem>
-          <MenuItem value="Vimantal">Vimantal</MenuItem>
-          <MenuItem value="Vishrantwadi">Vishrantwadi</MenuItem>
-          <MenuItem value="Khadaki">Khadaki</MenuItem>
-          <MenuItem value="Dighi">Dighi</MenuItem>
-          <MenuItem value="Mundhawa">Mundhawa</MenuItem>
-          <MenuItem value="Hadapsar">Hadapsar</MenuItem>
-          <MenuItem value="Kondhwa">Kondhwa</MenuItem>
-          <MenuItem value="Wanawadi">Wanawadi</MenuItem>
-          <MenuItem value="Faraskhana">Faraskhana</MenuItem>
-          <MenuItem value="Khadak">Khadak</MenuItem>
-          <MenuItem value="Vishrambaug">Vishrambaug</MenuItem>
-          <MenuItem value="Shivajinagar">Shivajinagar</MenuItem>
-          <MenuItem value="Deccan">Deccan</MenuItem>
-          <MenuItem value="Kothrud">Kothrud</MenuItem>
-          <MenuItem value="Warje Malwadi">Warje Malwadi</MenuItem>
-          <MenuItem value="Bharati Vidyapeeth">Bharati Vidyapeeth</MenuItem>
-          <MenuItem value="Sahakar Nagar">Sahakar Nagar</MenuItem>
-          <MenuItem value="Market Yard">Market Yard</MenuItem>
-          <MenuItem value="Sinhagad">Sinhagad</MenuItem>
-          <MenuItem value="Bibvewadi">Bibvewadi</MenuItem>
-          <MenuItem value="Dattawadi">Dattawadi</MenuItem>
-          <MenuItem value="Swargate">Swargate</MenuItem>
-          <MenuItem value="Bund Garden">Bund Garden</MenuItem>
-          <MenuItem value="Koregaon Park">Koregaon Park</MenuItem>
-          <MenuItem value="Lashkar">Lashkar</MenuItem>
-          <MenuItem value="Samarth (Somwar Peth)">Samarth (Somwar Peth)</MenuItem>
+          {zoneOptions.map((zone) => (
+            <MenuItem key={zone} value={zone}>{zone}</MenuItem>
+          ))}
         </Select>
       </FormControl>
 
@@ -207,11 +174,9 @@ const ServicePanel = () => {
       <Box display="flex" justifyContent="space-between">
         <TextField
           label="From"
-          variant="outlined"
           type="number"
           value={priceRange[0]}
           onChange={handleFromChange}
-          inputProps={{ min: 0, max: priceRange[1] }}
           sx={{ width: '45%' }}
           InputProps={{
             sx: {
@@ -222,11 +187,9 @@ const ServicePanel = () => {
         />
         <TextField
           label="To"
-          variant="outlined"
           type="number"
           value={priceRange[1]}
           onChange={handleToChange}
-          inputProps={{ min: priceRange[0], max: 1000000 }}
           sx={{ width: '45%' }}
           InputProps={{
             sx: {
@@ -247,13 +210,29 @@ const ServicePanel = () => {
       />
 
       <Typography>Profile Photo</Typography>
-      <Input type="file" accept="image/*" onChange={handlePhotoChange} />
-      {profilePhoto && <Avatar src={URL.createObjectURL(profilePhoto)} sx={{ width: 100, height: 100, mt: 2 }} />}
-      <Button variant="contained" color="primary" fullWidth sx={{ mt: 2 }} onClick={handleSave}>
+      <Input 
+        type="file" 
+        accept="image/*" 
+        onChange={handlePhotoChange}
+        sx={{ mt: 1 }}
+      />
+      {profilePhoto && (
+        <Avatar 
+          src={URL.createObjectURL(profilePhoto)} 
+          sx={{ width: 100, height: 100, mt: 2 }} 
+        />
+      )}
+
+      <Button 
+        variant="contained" 
+        color="primary" 
+        fullWidth 
+        sx={{ mt: 2 }} 
+        onClick={handleSave}
+      >
         Save
       </Button>
 
-      {/* Toast Container */}
       <ToastContainer />
     </Box>
   );
