@@ -15,6 +15,19 @@ export default function Modal({
     isOpen,
     closeModal
 }) {
+
+    const locationOptions = [
+        "Wakad", "Sangavi", "Hinjewadi", "Chaturshringi", "Pimpri", "Chinchwad",
+        "Nigadi", "Bhosari", "MIDC Bhosari", "Yerawada", "Vimantal",
+        "Vishrantwadi", "Khadaki", "Dighi", "Mundhawa", "Hadapsar", "Kondhwa",
+        "Wanawadi", "Faraskhana", "Khadak", "Vishrambaug", "Shivajinagar",
+        "Deccan", "Kothrud", "Warje Malwadi", "Bharati Vidyapeeth",
+        "Sahakar Nagar", "Market Yard", "Sinhagad", "Bibvewadi", "Dattawadi",
+        "Swargate", "Bund Garden", "Koregaon Park", "Lashkar",
+        "Samarth (Somwar Peth)"
+    ];
+
+
     // Define the state for showing the ContactForm
     const [isContactFormOpen, setIsContactFormOpen] = useState(false);
 
@@ -90,15 +103,21 @@ export default function Modal({
                                             <label htmlFor="shopLocation" className="block mb-2 text-sm font-medium text-gray-900">
                                                 Shop Location
                                             </label>
-                                            <input
+                                            <select
                                                 value={shopLocation}
                                                 onChange={(e) => setShopLocation(e.target.value)}
-                                                type="text"
-                                                name="shopLocation"
                                                 id="shopLocation"
+                                                name="shopLocation"
                                                 className="border outline-0 border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 bg-gray-100"
                                                 required
-                                            />
+                                            >
+                                                <option value="">Select a location</option>
+                                                {locationOptions.map((location, index) => (
+                                                    <option key={index} value={location}>
+                                                        {location}
+                                                    </option>
+                                                ))}
+                                            </select>
                                         </div>
 
                                         <button
@@ -120,8 +139,8 @@ export default function Modal({
                 <div className="fixed inset-0 flex items-center justify-center z-20 bg-black bg-opacity-50">
                     <div className="bg-gray-50 p-6 rounded-lg shadow-lg relative">
                         <ContactForm vendorEmail={vendorEmail} />
-                        <button 
-                            onClick={handleCloseContactForm} 
+                        <button
+                            onClick={handleCloseContactForm}
                             className="absolute top-4 right-4 text-white bg-red-600 p-2 rounded"
                         >
                             Close
