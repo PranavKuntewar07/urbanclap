@@ -48,7 +48,7 @@ function Navbar() {
             .then(() => {
                 setIsLoggedIn(false); // User is logged out
                 setDropdownOpen(false);  // Successfully signed out
-                navigate('/signup'); // Navigate to signup page
+                navigate('/'); // Navigate to home page
             })
             .catch((error) => {
                 console.error('Sign out error:', error);

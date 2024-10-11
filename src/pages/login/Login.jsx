@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from "../../firebase/firebase-config";
@@ -10,9 +10,14 @@ function Login() {
 
     const navigate = useNavigate();
 
+
+    useEffect(() => {
+        console.log('Stored email:', localStorage.getItem('submittedEmail'));
+    }, []);
+
     const login = async () => {
-        
         try {
+            
             const result = await signInWithEmailAndPassword(auth, email, password);
             toast.success("Login successful", {
                 position: "top-right",
@@ -25,10 +30,10 @@ function Login() {
                 theme: "colored",
             });
             localStorage.setItem('user', JSON.stringify(result));
-            navigate('/');
+            checkEmailAndNavigate(result.user.email);
         } catch (error) {
             console.log(error);
-            toast.error("Login failed", {
+            toast.error("Email not found. Please sign up. ", {
                 position: "top-right",
                 autoClose: 2000,
                 hideProgressBar: true,
@@ -38,8 +43,20 @@ function Login() {
                 progress: undefined,
                 theme: "colored",
             });
-        } 
+        }
     };
+
+    const checkEmailAndNavigate = (userEmail) => {
+        const submittedEmail = localStorage.getItem('submittedEmail');
+        console.log('User email:', userEmail.toLowerCase());
+        console.log('Submitted email:', submittedEmail);
+        if (submittedEmail && userEmail.toLowerCase() === submittedEmail) {
+            navigate('/dashboard');
+        } else {
+            navigate('/');
+        }
+    };
+
 
     return (
         <div className='flex justify-center items-center h-screen'>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { TextField, Button, Box } from '@mui/material';
-import { collection, doc, setDoc } from 'firebase/firestore';
-import { db } from '../../firebase/firebase-config';
+import { TextField, Button, Typography, Box } from '@mui/material';
+import { doc, setDoc } from 'firebase/firestore';
+import { db } from './firebase'; // Import the Firestore instance
 import { toast } from 'react-toastify';
 
 
@@ -17,10 +17,13 @@ const EmailForm = ({ onSubmitEmail }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const emailDocRef = doc(db, 'emails', email);
-            await setDoc(emailDocRef, { email }, { merge: true });
+            const lowerCaseEmail = email.toLowerCase();
+            const emailDocRef = doc(db, 'emails', lowerCaseEmail);
+            await setDoc(emailDocRef, { email: lowerCaseEmail }, { merge: true });
+            localStorage.setItem('submittedEmail', lowerCaseEmail);
+            console.log('Stored email:', localStorage.getItem('submittedEmail'));
             toast.success('Email submitted successfully!');
-            onSubmitEmail(email);
+            onSubmitEmail(lowerCaseEmail);
             setEmail('');
         } catch (error) {
             console.error("Error submitting email: ", error);
@@ -52,42 +55,3 @@ const EmailForm = ({ onSubmitEmail }) => {
 
 export default EmailForm;
 
-
-
-
-
-
-
-
-
-
-
-
-
-//  Handle form submission
-//     const handleSubmit = async (e) => {
-//         e.preventDefault();
-
-//         try {
-//             // Add a new document with the email to the 'emails' collection
-//             const docRef = await addDoc(collection(db, "emails"), {
-//                 email: email,
-//                 createdAt: new Date(), // Add a timestamp
-//                 additionalData: "Some additional data" // Example of additional data (optional)
-//             });
-
-//             console.log("Document written with ID: ", docRef.id);
-
-//             // Call the onSubmitEmail callback if provided
-//             if (onSubmitEmail) {
-//                 onSubmitEmail({ email });
-//             }
-
-//             toast.success('Email submitted successfully!');
-//             // Clear the input field
-//             setEmail('');
-//         } catch (e) {
-//             console.error("Error adding document: ", e);
-//             toast.error(`Failed to submit email: ${error.message}`);
-//         }
-//     };

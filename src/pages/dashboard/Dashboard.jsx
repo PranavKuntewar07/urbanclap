@@ -66,7 +66,7 @@ const Dashboard = () => {
     <div className="flex h-screen">
       {/* Sidebar */}
       <aside className="bg-red-600 text-white w-64 p-4 space-y-6">
-        <div className="text-2xl font-bold">zomato</div>
+        <div className="text-2xl font-bold">Choice Up</div>
         <nav className="space-y-4">
           {['Dashboard', 'Orders', 'Promotions', 'Track Orders', 'Messages'].map((item, index) => (
             <a
@@ -95,7 +95,7 @@ const Dashboard = () => {
       </aside>
 
       {/* Main content */}
-      <div className="flex-1 p-6 bg-gray-100">
+      <div className="flex-1 p-6 bg-gray-100 ">
         {/* Top Navigation Bar */}
         <header className="flex justify-between items-center mb-6">
           <div className="relative w-1/2">
@@ -109,7 +109,7 @@ const Dashboard = () => {
           </div>
           <div className="flex items-center space-x-4">
             <span className="font-bold">
-              Welcome Back! <span className="text-blue-600">Studd Khan</span>
+              Welcome Back! <span className="text-blue-600">Vendor name</span>
             </span>
             <button className="p-2 bg-gray-200 rounded-full" aria-label="Notifications">
               🔔
