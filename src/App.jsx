@@ -19,7 +19,7 @@ function App() {
                     <Route path="/login" element={<Login />} />
                     <Route path="/signup" element={<SignUp />} />
                     <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/dashboard/inventory" element={<Inventory />} />
+                    <Route path="/inventory" element={<Inventory />} />
                     
                 </Routes>
                 <ToastContainer />

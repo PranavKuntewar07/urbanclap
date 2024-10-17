@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Line, Doughnut, Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -11,11 +11,51 @@ import {
   Tooltip,
   Legend
 } from 'chart.js';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../../firebase/firebase-config'; // Adjust the import path as needed
+
 
 // Register the necessary components for Chart.js
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, ArcElement, BarElement, Tooltip, Legend);
 
 const Dashboard = () => {
+  const navigate = useNavigate();
+  const [vendorName, setVendorName] = useState('');
+
+  useEffect(() => {
+    const fetchVendorName = async () => {
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (user && user.user && user.user.email) {
+        const email = user.user.email.toLowerCase();
+        const vendorDocRef = doc(db, 'emails', email);
+        try {
+          const vendorDoc = await getDoc(vendorDocRef);
+          if (vendorDoc.exists()) {
+            // Extract vendor name from email
+            const nameFromEmail = email.split('@')[0];
+            // Capitalize the first letter of each word
+            const formattedName = nameFromEmail.split('.').map(word =>
+              word.charAt(0).toUpperCase() + word.slice(1)
+            ).join(' ');
+            setVendorName(formattedName);
+          } else {
+            console.log('No vendor document found');
+            setVendorName('Vendor'); // Fallback name
+          }
+        } catch (error) {
+          console.error("Error fetching vendor document:", error);
+          setVendorName('Vendor'); // Fallback name
+        }
+      } else {
+        console.log('No user found in localStorage');
+        setVendorName('Vendor'); // Fallback name
+      }
+    };
+
+    fetchVendorName();
+  }, []);
+
   // Data for Line Chart (Sales Value)
   const lineData = {
     labels: ['May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov'],
@@ -81,7 +121,15 @@ const Dashboard = () => {
           ))}
         </nav>
         <div className="space-y-2">
-          {['Inventory', 'Accounts', 'Support Centre'].map((item, index) => (
+          <a
+            href="#"
+            onClick={() => navigate('/inventory')} // Add onClick for Inventory
+            className="block p-2 rounded-md hover:bg-red-500"
+            aria-label="Inventory"
+          >
+            Inventory
+          </a>
+          {['Accounts', 'Support Centre'].map((item, index) => (
             <a
               href="#"
               key={index}
@@ -109,7 +157,7 @@ const Dashboard = () => {
           </div>
           <div className="flex items-center space-x-4">
             <span className="font-bold">
-              Welcome Back! <span className="text-blue-600">Vendor name</span>
+              Welcome Back! <span className="text-blue-600">{vendorName}</span>
             </span>
             <button className="p-2 bg-gray-200 rounded-full" aria-label="Notifications">
               🔔
