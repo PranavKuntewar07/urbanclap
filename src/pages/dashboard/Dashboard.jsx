@@ -22,12 +22,15 @@ ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, ArcEleme
 const Dashboard = () => {
   const navigate = useNavigate();
   const [vendorName, setVendorName] = useState('');
+  const [vendorEmail, setVendorEmail] = useState('');
 
   useEffect(() => {
     const fetchVendorName = async () => {
       const user = JSON.parse(localStorage.getItem('user'));
       if (user && user.user && user.user.email) {
         const email = user.user.email.toLowerCase();
+        setVendorEmail(email); // Set the email to be used for navigation
+        
         const vendorDocRef = doc(db, 'emails', email);
         try {
           const vendorDoc = await getDoc(vendorDocRef);
@@ -123,7 +126,7 @@ const Dashboard = () => {
         <div className="space-y-2">
           <a
             href="#"
-            onClick={() => navigate('/inventory')} // Add onClick for Inventory
+            onClick={() => navigate('/inventory', { state: { vendorEmail: vendorEmail } })} // Add onClick for Inventory
             className="block p-2 rounded-md hover:bg-red-500"
             aria-label="Inventory"
           >
