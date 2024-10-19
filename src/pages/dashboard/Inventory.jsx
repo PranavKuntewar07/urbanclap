@@ -11,13 +11,12 @@ const ServiceProviderItem = ({ image, serviceId, name, category, serviceZone, pr
             <div className="w-1/4">
                 <img src={image} alt="Provider" className="w-12 h-12 rounded-full" />
             </div>
-            <div className="w-1/4">{category}</div>
+            <div className="w-1/4 font-semibold">{category}</div>
             <div className="w-1/4">
                 <div className="font-semibold">{name}</div>
-                <div className="text-gray-500 text-sm">#{serviceId}</div>
             </div>
-            <div className="w-1/6 text-center">${priceRange}</div>
-            <div className="w-1/6 text-center">{serviceZone}</div>
+            <div className="w-1/6 text-center font-semibold">Rs{priceRange[0]} - {priceRange[1]}</div>
+            <div className="w-1/6 text-center font-semibold">{serviceZone}</div>
             <button className="text-gray-500">
                 <ChevronRight size={20} />
             </button>
@@ -68,11 +67,18 @@ const Inventory = () => {
                     const fetchedServices = servicesSnapshot.docs.map(doc => {
                         const data = doc.data();
                         console.log('Processing service:', doc.id, data);
+                        
+                        // Handle the priceRange array from Firestore
+                        let formattedPriceRange = ['0', '0'];
+                        if (data.priceRange && Array.isArray(data.priceRange)) {
+                            formattedPriceRange = data.priceRange;
+                        }
+                        
                         return {
                             id: doc.id,
                             serviceCategory: data.serviceCategory,
                             serviceName: data.serviceName,
-                            priceRange: data.priceRange,
+                            priceRange: formattedPriceRange,
                             serviceZone: data.serviceZone,
                             photoURL: data.photoURL,
                             createdAt: data.createdAt?.toDate(),
@@ -102,7 +108,6 @@ const Inventory = () => {
             }
         });
 
-        // Cleanup subscription
         return () => {
             console.log('Cleaning up auth state listener');
             unsubscribe();
@@ -119,7 +124,7 @@ const Inventory = () => {
     return (
         <div className="flex bg-gray-100 min-h-screen">
             <aside className="w-64 bg-red-500 text-white p-6">
-                <h1 className="text-2xl font-bold mb-8">Deonde</h1>
+                <h1 className="text-2xl font-bold mb-8">Choice Up</h1>
                 <nav>
                     <ul>
                         <li className="mb-4">
