@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
-import { db } from '../../firebase/firebase-config';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { db, auth } from '../../firebase/firebase-config';
+import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
+import { onAuthStateChanged } from 'firebase/auth';
 import { Bell, MessageSquare, Gift, ChevronRight } from 'lucide-react';
 
 const ServiceProviderItem = ({ image, serviceId, name, category, serviceZone, priceRange }) => {
-    console.log('Rendering ServiceProviderItem:', { serviceId, name, category });
+    console.log('Rendering ServiceProviderItem:', { serviceId, name, category, serviceZone, priceRange });
     return (
         <div className="flex items-center justify-between py-4 border-b">
             <div className="w-1/4">
@@ -30,81 +30,91 @@ const Inventory = () => {
     const [services, setServices] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const location = useLocation();
-    const vendorEmail = location.state?.vendorEmail;
-    
-    console.log('Initial location state:', location.state);
-    console.log('Vendor email from state:', vendorEmail);
+    const [vendorName, setVendorName] = useState('');
 
     useEffect(() => {
-        console.log('useEffect triggered with vendorEmail:', vendorEmail);
+        console.log('Setting up auth state listener');
         
-        const fetchServices = async () => {
-            console.log('Starting fetchServices');
-            try {
-                if (!vendorEmail) {
-                    console.log('No vendor email provided');
-                    setError('No vendor email provided');
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            console.log('Auth state changed:', user ? 'User authenticated' : 'No user');
+            
+            if (user) {
+                try {
+                    const vendorEmail = user.email.toLowerCase();
+                    console.log('Fetching data for vendor:', vendorEmail);
+
+                    // Get vendor document
+                    const vendorDocRef = doc(db, 'emails', vendorEmail);
+                    console.log('Fetching vendor document');
+                    const vendorDoc = await getDoc(vendorDocRef);
+
+                    if (!vendorDoc.exists()) {
+                        console.error('Vendor document not found');
+                        setError('Vendor profile not found');
+                        setLoading(false);
+                        return;
+                    }
+
+                    console.log('Vendor document found:', vendorDoc.data());
+                    setVendorName(vendorDoc.data().name || 'Vendor');
+
+                    // Get services subcollection
+                    console.log('Fetching services collection');
+                    const servicesRef = collection(vendorDocRef, 'services');
+                    const servicesSnapshot = await getDocs(servicesRef);
+                    
+                    console.log(`Found ${servicesSnapshot.size} services`);
+                    
+                    const fetchedServices = servicesSnapshot.docs.map(doc => {
+                        const data = doc.data();
+                        console.log('Processing service:', doc.id, data);
+                        return {
+                            id: doc.id,
+                            serviceCategory: data.serviceCategory,
+                            serviceName: data.serviceName,
+                            priceRange: data.priceRange,
+                            serviceZone: data.serviceZone,
+                            photoURL: data.photoURL,
+                            createdAt: data.createdAt?.toDate(),
+                        };
+                    });
+                    
+                    console.log('Sorting services by creation date');
+                    fetchedServices.sort((a, b) => b.createdAt - a.createdAt);
+                    
+                    console.log('Setting services state with:', fetchedServices.length, 'items');
+                    setServices(fetchedServices);
                     setLoading(false);
-                    return;
-                }
-
-                console.log('Querying emails collection for:', vendorEmail.toLowerCase());
-                const emailsRef = collection(db, 'emails');
-                const vendorQuery = query(emailsRef, where('email', '==', vendorEmail.toLowerCase()));
-                const vendorSnapshot = await getDocs(vendorQuery);
-
-                console.log('Vendor query results:', vendorSnapshot.size, 'documents');
-                if (vendorSnapshot.empty) {
-                    console.log('No vendor found for email:', vendorEmail);
-                    setError('Vendor not found');
+                } catch (err) {
+                    console.error('Error in fetchServices:', err);
+                    console.log('Error details:', {
+                        message: err.message,
+                        code: err.code,
+                        stack: err.stack
+                    });
+                    setError('Error fetching services. Please try again later.');
                     setLoading(false);
-                    return;
                 }
-
-                const vendorDoc = vendorSnapshot.docs[0];
-                console.log('Vendor document ID:', vendorDoc.id);
-
-                const servicesRef = collection(vendorDoc.ref, 'services');
-                const servicesSnapshot = await getDocs(servicesRef);
-                console.log('Services query results:', servicesSnapshot.size, 'documents');
-                
-                const fetchedServices = servicesSnapshot.docs.map(doc => {
-                    const data = doc.data();
-                    console.log('Processing service document:', doc.id, data);
-                    return {
-                        id: doc.id,
-                        serviceCategory: data.serviceCategory,
-                        serviceName: data.serviceName,
-                        priceRange: data.priceRange,
-                        serviceZone: data.serviceZone,
-                        photoURL: data.photoURL,
-                        createdAt: data.createdAt?.toDate(),
-                    };
-                });
-                
-                console.log('Sorting services by creation date');
-                fetchedServices.sort((a, b) => b.createdAt - a.createdAt);
-                
-                console.log('Setting services state with:', fetchedServices.length, 'items');
-                setServices(fetchedServices);
-                setLoading(false);
-            } catch (err) {
-                console.error("Error in fetchServices:", err);
-                console.log('Error details:', {
-                    message: err.message,
-                    code: err.code,
-                    stack: err.stack
-                });
-                setError('Error fetching services. Please try again later.');
+            } else {
+                console.log('No authenticated user, showing sign in message');
+                setError('Please sign in to view inventory');
                 setLoading(false);
             }
+        });
+
+        // Cleanup subscription
+        return () => {
+            console.log('Cleaning up auth state listener');
+            unsubscribe();
         };
+    }, []);
 
-        fetchServices();
-    }, [vendorEmail]);
-
-    console.log('Current state:', { loading, error, servicesCount: services.length });
+    console.log('Current state:', { 
+        loading, 
+        error, 
+        servicesCount: services.length,
+        vendorName 
+    });
 
     return (
         <div className="flex bg-gray-100 min-h-screen">
@@ -192,7 +202,7 @@ const Inventory = () => {
                         <div className="flex items-center">
                             <span className="mr-2 text-right">
                                 <div>Good Morning</div>
-                                <div className="font-semibold">Jonathan Higgins</div>
+                                <div className="font-semibold">{vendorName}</div>
                             </span>
                             <img src="/api/placeholder/50/50" alt="Profile" className="w-12 h-12 rounded-full" />
                         </div>
