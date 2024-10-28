@@ -12,7 +12,7 @@ import {
   Legend
 } from 'chart.js';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase/firebase-config'; // Adjust the import path as needed
 
 
@@ -30,7 +30,7 @@ const Dashboard = () => {
       if (user && user.user && user.user.email) {
         const email = user.user.email.toLowerCase();
         setVendorEmail(email); // Set the email to be used for navigation
-        
+
         const vendorDocRef = doc(db, 'emails', email);
         try {
           const vendorDoc = await getDoc(vendorDocRef);
@@ -60,20 +60,56 @@ const Dashboard = () => {
   }, []);
 
   // Data for Line Chart (Sales Value)
-  const lineData = {
-    labels: ['May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov'],
-    datasets: [
-      {
-        label: 'Sales Value',
-        data: [12000, 15000, 17000, 14000, 18000, 22000, 25000],
-        backgroundColor: 'rgba(255, 99, 132, 0.2)',
-        borderColor: 'rgba(255, 99, 132, 1)',
-        borderWidth: 2,
-        tension: 0.4,
-        fill: true,
-      },
-    ],
-  };
+  const [lineData, setLineData] = useState({
+    labels: [],
+    datasets: [{
+      label: 'Sales Value',
+      data: [],
+      backgroundColor: 'rgba(255, 99, 132, 0.2)',
+      borderColor: 'rgba(255, 99, 132, 1)',
+      borderWidth: 2,
+      tension: 0.4,
+      fill: true,
+    }]
+  });
+
+  const [view, setView] = useState('monthly'); // Default view set to 'monthly'
+
+  useEffect(() => {
+    // Reference to the document containing all sales data
+    const salesDocRef = doc(db, 'sales', 'timePeriodSales');
+
+    // Real-time listener for the sales document
+    const unsubscribe = onSnapshot(salesDocRef, (docSnapshot) => {
+      if (docSnapshot.exists()) {
+        const data = docSnapshot.data();
+        let newLabels = [];
+        let newData = [];
+
+        // Update chart data based on the selected view
+        if (view === 'monthly') {
+          newLabels = Object.keys(data.monthlyData);
+          newData = Object.values(data.monthlyData);
+        } else if (view === 'weekly') {
+          newLabels = Object.keys(data.weeklyData);
+          newData = Object.values(data.weeklyData);
+        } else if (view === 'yearly') {
+          newLabels = Object.keys(data.yearlyData);
+          newData = Object.values(data.yearlyData);
+        }
+
+        // Update the chart with new labels and data
+        setLineData({
+          labels: newLabels,
+          datasets: [{ ...lineData.datasets[0], data: newData }]
+        });
+      }
+    });
+
+    // Clean up listener when component unmounts or view changes
+    return () => unsubscribe();
+  }, [view]); // Run effect when 'view' changes
+
 
   // Data for Doughnut Chart (Goal Overview)
   const doughnutData = {

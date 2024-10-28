@@ -1,12 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { db, auth } from '../../firebase/firebase-config';
-import { doc, getDoc, collection, getDocs, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs, updateDoc, deleteDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { Bell, MessageSquare, Gift, ChevronRight } from 'lucide-react';
 import { FiMoreVertical } from 'react-icons/fi';
+import InventoryAdd from './InventoryAdd'; // Ensure correct casing
 
-const ServiceProviderItem = ({ service, onEdit }) => {
+
+const ServiceProviderItem = ({ service, onEdit, onDelete }) => {
     const [isOpen, setIsOpen] = useState(false);
+
+    const handleDelete = () => {
+        if (window.confirm('Are you sure you want to delete this service?')) {
+            onDelete(service.id);
+        }
+        setIsOpen(false);
+    };
 
     return (
         <div className="flex items-center justify-between py-4 border-b relative">
@@ -39,10 +48,7 @@ const ServiceProviderItem = ({ service, onEdit }) => {
                             Edit
                         </div>
                         <div
-                            onClick={() => {
-                                console.log('Delete clicked');
-                                setIsOpen(false);
-                            }}
+                            onClick={handleDelete}
                             className="px-4 py-2 text-sm text-red-600 hover:bg-gray-100 cursor-pointer rounded-b whitespace-nowrap"
                         >
                             Delete
@@ -56,6 +62,31 @@ const ServiceProviderItem = ({ service, onEdit }) => {
 
 const EditServiceForm = ({ service, onSave, onCancel }) => {
     const [editedService, setEditedService] = useState(service);
+
+    const serviceCategories = {
+        "Electricians": ["Electrician Basic", "Electrician Advanced"],
+        "Plumbers": ["Plumbing Fixes", "Pipe Installation", "General Plumbing"],
+        "Carpenters": ["Woodworking", "Custom Carpentry", "Furniture crafting"],
+        "Painting": ["Interior Painting", "Exterior Painting"],
+        "Waterproofing": ["Waterproofing Basic", "Advanced Waterproofing"],
+        "Wallpanels": ["Standard Wallpanels", "Custom Wallpanels"],
+        "AC Appliance & Repair": ["AC Installation", "AC Repair", "AC Service"],
+        "Electronic items Repair": ["Refrigerator repair", "Air Cooler Repair", "Water Purifier Repair", "Geyser Repair", "Inverter Repair", "Chimney Repair", "Microwave Repair", "Laptop Repair", "Gas Stove Repair", "Telivison Repair"],
+        "Cleaning, Pest Control": ["Home Cleaning", "Pest Control", "Water Tank Cleaning", "Sofa and Carpet deep Cleaning", "Full Home Cleaning", "Bed Bugs Control", "Bathroom and Kitchen Cleaning", "Disinfection Service"],
+        "Women's Salon, Spa & Laser Clinic": ["Facials", "Haircut & Styling", "Salon Prime", "Hydraderma Facials & Treatments", "Salon Classic", "Nail Studio", "Laser Hair Reduction", "Spa Ayurveda", "Spa Luxe", "Hair Studio For Women", "Salon Luxe", "Spa for Women"],
+        "Men's Salon & Massage": ["Haircut", "Massage Therapy", "Men Therapy", "Massage For Men", "Salon Royale For Kids", "Massage For Men Ayurveda"]
+    };
+
+    const serviceZones = [
+        "Wakad", "Sangavi", "Hinjewadi", "Chaturshringi", "Pimpri", "Chinchwad",
+        "Nigadi", "Bhosari", "MIDC Bhosari", "Yerawada", "Vimantal",
+        "Vishrantwadi", "Khadaki", "Dighi", "Mundhawa", "Hadapsar", "Kondhwa",
+        "Wanawadi", "Faraskhana", "Khadak", "Vishrambaug", "Shivajinagar",
+        "Deccan", "Kothrud", "Warje Malwadi", "Bharati Vidyapeeth",
+        "Sahakar Nagar", "Market Yard", "Sinhagad", "Bibvewadi", "Dattawadi",
+        "Swargate", "Bund Garden", "Koregaon Park", "Lashkar",
+        "Samarth (Somwar Peth)"
+    ];
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -74,79 +105,106 @@ const EditServiceForm = ({ service, onSave, onCancel }) => {
     };
 
     return (
-        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow">
-            <h3 className="text-xl font-semibold mb-4">Edit Service</h3>
-            <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="serviceName">
-                    Service Name
-                </label>
-                <input
-                    type="text"
-                    id="serviceName"
-                    name="serviceName"
-                    value={editedService.serviceName}
-                    onChange={handleChange}
-                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                />
-            </div>
-            <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="serviceCategory">
+        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-lg w-full h-auto max-h-screen">
+            <h3 className="text-2xl font-semibold mb-6 text-gray-800">Edit Service</h3>
+
+            {/* Service Category */}
+            <div className="mb-5">
+                <label className="block text-gray-700 text-sm font-semibold mb-2" htmlFor="serviceCategory">
                     Service Category
                 </label>
-                <input
-                    type="text"
+                <select
                     id="serviceCategory"
                     name="serviceCategory"
                     value={editedService.serviceCategory}
                     onChange={handleChange}
-                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                />
+                    className="block w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-gray-700"
+                >
+                    <option value="" disabled>Select a category</option>
+                    {Object.keys(serviceCategories).map((category, index) => (
+                        <option key={index} value={category}>{category}</option>
+                    ))}
+                </select>
             </div>
-            <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="priceRange">
+
+            {/* Service Name */}
+            <div className="mb-5">
+                <label className="block text-gray-700 text-sm font-semibold mb-2" htmlFor="serviceName">
+                    Service Name
+                </label>
+                <select
+                    id="serviceName"
+                    name="serviceName"
+                    value={editedService.serviceName}
+                    onChange={handleChange}
+                    className="block w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-gray-700"
+                    disabled={!editedService.serviceCategory}
+                >
+                    <option value="" disabled>Select a service</option>
+                    {editedService.serviceCategory && serviceCategories[editedService.serviceCategory]?.map((name, index) => (
+                        <option key={index} value={name}>{name}</option>
+                    ))}
+                </select>
+            </div>
+
+            {/* Price Range */}
+            <div className="mb-5">
+                <label className="block text-gray-700 text-sm font-semibold mb-2" htmlFor="priceRange">
                     Price Range
                 </label>
-                <div className="flex space-x-2">
+                <div className="flex space-x-4">
                     <input
                         type="number"
                         id="priceRangeMin"
+                        placeholder="Min Price"
                         value={editedService.priceRange[0]}
                         onChange={(e) => handlePriceRangeChange(0, e.target.value)}
-                        className="shadow appearance-none border rounded w-1/2 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        className="block w-1/2 px-4 py-3 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-gray-700"
                     />
                     <input
                         type="number"
                         id="priceRangeMax"
+                        placeholder="Max Price"
                         value={editedService.priceRange[1]}
                         onChange={(e) => handlePriceRangeChange(1, e.target.value)}
-                        className="shadow appearance-none border rounded w-1/2 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        className="block w-1/2 px-4 py-3 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-gray-700"
                     />
                 </div>
             </div>
-            <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="serviceZone">
+
+            {/* Service Zone */}
+            <div className="mb-5">
+                <label className="block text-gray-700 text-sm font-semibold mb-2" htmlFor="serviceZone">
                     Service Zone
                 </label>
-                <input
-                    type="text"
+                <select
                     id="serviceZone"
                     name="serviceZone"
                     value={editedService.serviceZone}
                     onChange={handleChange}
-                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                />
+                    className="block w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-gray-700"
+                >
+                    <option value="">Select Service Zone</option>
+                    {serviceZones.map((zone) => (
+                        <option key={zone} value={zone}>
+                            {zone}
+                        </option>
+                    ))}
+                </select>
             </div>
-            <div className="flex justify-end space-x-2">
+
+            {/* Buttons */}
+            <div className="flex justify-end space-x-3">
                 <button
                     type="button"
                     onClick={onCancel}
-                    className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                    className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-5 rounded-lg focus:outline-none focus:shadow-outline"
                 >
                     Cancel
                 </button>
                 <button
                     type="submit"
-                    className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-5 rounded-lg focus:outline-none focus:shadow-outline"
                 >
                     Save Changes
                 </button>
@@ -155,6 +213,7 @@ const EditServiceForm = ({ service, onSave, onCancel }) => {
     );
 };
 
+
 const Inventory = () => {
     const [services, setServices] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -162,6 +221,7 @@ const Inventory = () => {
     const [vendorName, setVendorName] = useState('');
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [editingService, setEditingService] = useState(null);
+    const [showAddForm, setShowAddForm] = useState(false);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -228,6 +288,10 @@ const Inventory = () => {
         };
     }, []);
 
+    const handleServiceAdded = (newService) => {
+        setServices(prevServices => [newService, ...prevServices]);
+    };
+
     const handleEdit = (service) => {
         setEditingService(service);
     };
@@ -245,8 +309,8 @@ const Inventory = () => {
                 serviceZone: editedService.serviceZone,
             });
 
-            setServices(prevServices => 
-                prevServices.map(service => 
+            setServices(prevServices =>
+                prevServices.map(service =>
                     service.id === editedService.id ? editedService : service
                 )
             );
@@ -259,6 +323,22 @@ const Inventory = () => {
 
     const handleCancel = () => {
         setEditingService(null);
+    };
+
+
+    const handleDelete = async (serviceId) => {
+        try {
+            const vendorEmail = auth.currentUser.email.toLowerCase();
+            const vendorDocRef = doc(db, 'emails', vendorEmail);
+            const serviceDocRef = doc(vendorDocRef, 'services', serviceId);
+
+            await deleteDoc(serviceDocRef);
+
+            setServices(prevServices => prevServices.filter(service => service.id !== serviceId));
+        } catch (err) {
+            console.error('Error deleting service:', err);
+            setError('Failed to delete service. Please try again.');
+        }
     };
 
 
@@ -371,70 +451,82 @@ const Inventory = () => {
                 </header>
 
                 <div className="flex-1 p-8 overflow-auto">
-        <div className="bg-white p-6 rounded-lg shadow">
-          {editingService ? (
-            <EditServiceForm
-              service={editingService}
-              onSave={handleSave}
-              onCancel={handleCancel}
-            />
-          ) : (
-            <>
-              <div className="flex justify-between items-center mb-6">
-                <div>
-                  <h3 className="text-xl font-semibold mb-2">Recent Order Request</h3>
-                  <p className="text-gray-500">Browse and manage service</p>
+                    <div className="bg-white p-6 rounded-lg shadow">
+                        {editingService ? (
+                            <EditServiceForm
+                                service={editingService}
+                                onSave={handleSave}
+                                onCancel={handleCancel}
+                            />
+                        ) : (
+                            <>
+                                <div className="flex justify-between items-center mb-6">
+                                    <div>
+                                        <h3 className="text-xl font-semibold mb-2">Recent Order Request</h3>
+                                        <p className="text-gray-500">Browse and manage service</p>
+                                    </div>
+                                    <button
+                                        onClick={() => setShowAddForm(true)}
+                                        className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
+                                    >
+                                        Add New Service
+                                    </button>
+                                </div>
+
+                                <div className="overflow-x-auto">
+                                    <div className="min-w-full">
+                                        <div className="flex items-center justify-between py-2 border-b font-semibold text-gray-600">
+                                            <div className="w-1/4">Profile Photo</div>
+                                            <div className="w-1/4">Service Category</div>
+                                            <div className="w-1/4">Service Name</div>
+                                            <div className="w-1/6 text-center">Price Range</div>
+                                            <div className="w-1/6 text-center">Service Zone</div>
+                                            <div className="w-8"></div>
+                                        </div>
+
+                                        {loading && (
+                                            <div className="py-8 text-center">
+                                                <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-red-500 border-t-transparent"></div>
+                                                <div className="mt-2 text-gray-600">Loading services...</div>
+                                            </div>
+                                        )}
+
+                                        {error && (
+                                            <div className="py-8 text-center">
+                                                <div className="text-red-500 bg-red-50 p-4 rounded-lg inline-block">
+                                                    {error}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {!loading && !error && services.length === 0 && (
+                                            <div className="py-8 text-center text-gray-500">
+                                                No services found. Click "Add New Service" to get started.
+                                            </div>
+                                        )}
+
+                                        {!loading && !error && services.map((service) => (
+                                            <ServiceProviderItem
+                                                key={service.id}
+                                                service={service}
+                                                onEdit={handleEdit}
+                                                onDelete={handleDelete}
+                                            />
+                                        ))}
+
+                                        {showAddForm && (
+                                            <InventoryAdd
+                                                onClose={() => setShowAddForm(false)}
+                                                onServiceAdded={handleServiceAdded}
+                                            />
+                                        )}
+
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </div>
                 </div>
-                <button className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors">
-                  Add New Service
-                </button>
-              </div>
-
-              <div className="overflow-x-auto">
-                <div className="min-w-full">
-                  <div className="flex items-center justify-between py-2 border-b font-semibold text-gray-600">
-                    <div className="w-1/4">Profile Photo</div>
-                    <div className="w-1/4">Service Category</div>
-                    <div className="w-1/4">Service Name</div>
-                    <div className="w-1/6 text-center">Price Range</div>
-                    <div className="w-1/6 text-center">Service Zone</div>
-                    <div className="w-8"></div>
-                  </div>
-
-                  {loading && (
-                    <div className="py-8 text-center">
-                      <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-red-500 border-t-transparent"></div>
-                      <div className="mt-2 text-gray-600">Loading services...</div>
-                    </div>
-                  )}
-
-                  {error && (
-                    <div className="py-8 text-center">
-                      <div className="text-red-500 bg-red-50 p-4 rounded-lg inline-block">
-                        {error}
-                      </div>
-                    </div>
-                  )}
-
-                  {!loading && !error && services.length === 0 && (
-                    <div className="py-8 text-center text-gray-500">
-                      No services found. Click "Add New Service" to get started.
-                    </div>
-                  )}
-
-                  {!loading && !error && services.map((service) => (
-                    <ServiceProviderItem
-                      key={service.id}
-                      service={service}
-                      onEdit={handleEdit}
-                    />
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
             </main>
         </div>
     );

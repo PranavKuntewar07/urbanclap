@@ -8,6 +8,7 @@ import Dashboard from './pages/dashboard/Dashboard';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Inventory from './pages/dashboard/Inventory';
+import ACServicePage from './pages/services/ac/ACServicePage';
 
 
 function App() {
@@ -20,6 +21,8 @@ function App() {
                     <Route path="/signup" element={<SignUp />} />
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/inventory" element={<Inventory />} />
+                    <Route path="/ac_repair" element={<ACServicePage />} />
+                    
                     
                 </Routes>
                 <ToastContainer />
