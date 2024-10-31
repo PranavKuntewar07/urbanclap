@@ -1,76 +1,8 @@
 import React, { useState } from 'react';
-import { Star, Clock, Package, Settings, MapPin, Search, ShoppingCart, X } from 'lucide-react';
+import { Star, Package, Search, ShoppingCart, Settings } from 'lucide-react';
+import ServiceDetailModal from './ServiceDetailModal';
 
-const ServiceDetailModal = ({ isOpen, onClose, service }) => {
-  if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto relative">
-        <button 
-          onClick={onClose}
-          className="absolute right-4 top-4 p-1 rounded-full hover:bg-gray-100"
-        >
-          <X className="w-6 h-6 text-gray-500" />
-        </button>
-
-        <div className="p-6 space-y-6">
-          <div className="space-y-4">
-            <h2 className="text-2xl font-semibold">{service.title}</h2>
-            
-            <div className="flex items-center gap-1">
-              <div className="bg-emerald-600 text-white px-2 py-0.5 rounded flex items-center">
-                <Star className="w-4 h-4 fill-white text-white mr-1" />
-                <span>{service.rating}</span>
-              </div>
-              <span className="text-gray-500 text-sm">{service.reviews} reviews</span>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="text-xl font-semibold">₹{service.price}</span>
-              <span className="text-gray-500 line-through text-sm">₹{service.originalPrice}</span>
-              <span className="text-gray-600 text-sm">• {service.duration}</span>
-            </div>
-
-            <div className="text-emerald-600 text-sm">
-              <span>{service.discount}</span>
-            </div>
-          </div>
-
-          <hr />
-
-          <div className="space-y-4">
-            <h3 className="text-2xl font-semibold">About the service</h3>
-            <ul className="space-y-4">
-              {service.features.map((feature, index) => (
-                <li key={index} className="flex items-start gap-3">
-                  <div className="mt-1 w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                  <span>{feature}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <hr />
-
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <div className="text-2xl font-bold">power</div>
-              <div className="bg-purple-600 text-white px-2 rounded">saver</div>
-            </div>
-            <h3 className="text-2xl font-semibold">Save more on your electricity bill</h3>
-          </div>
-
-          
-        </div>
-      </div>
-    </div>
-  );
-};
 
 const ACServicePage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -218,7 +150,7 @@ const ACServicePage = () => {
                   </div>
 
                   <div className="mt-2">
-                    <button 
+                    <button
                       onClick={() => handleViewDetails(service)}
                       className="text-purple-600 text-sm hover:text-purple-700"
                     >
